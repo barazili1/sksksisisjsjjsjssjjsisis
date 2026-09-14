@@ -48,19 +48,23 @@ export function AccessGate({ children }: { children: ReactNode }) {
 export function AccessDenied({
   reason,
 }: {
-  reason: "invalid" | "expired" | "device_limit";
+  reason: "invalid" | "expired" | "device_limit" | "no_balance";
 }) {
   const title =
     reason === "expired"
       ? "انتهت صلاحية الرابط"
       : reason === "device_limit"
       ? "تم تجاوز عدد الأجهزة المسموح بها"
+      : reason === "no_balance"
+      ? "الرصيد انتهى"
       : "الوصول مرفوض";
   const desc =
     reason === "expired"
       ? "الرابط ده مش شغّال دلوقتي، اطلب رابط جديد."
       : reason === "device_limit"
       ? "الرابط ده استخدمه أقصى عدد من الأجهزة."
+      : reason === "no_balance"
+      ? "الخدمة موقوفة مؤقتًا لحد ما يتشحن الرصيد."
       : "مش مسموحلك تدخل الصفحة دي بدون رابط صالح.";
   return (
     <div
