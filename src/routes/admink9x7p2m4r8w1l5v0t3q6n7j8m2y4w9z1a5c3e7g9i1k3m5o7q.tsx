@@ -27,7 +27,7 @@ const UNIT_LABELS: Record<Unit, string> = {
   week: "أسبوع",
 };
 
-const SITE_BASE = "https://vodafone-xcashx.vercel.app";
+const SITE_BASE = "https://myorigapp.lovable.app";
 
 function AdminPage() {
   const create = useServerFn(createAccessKey);
