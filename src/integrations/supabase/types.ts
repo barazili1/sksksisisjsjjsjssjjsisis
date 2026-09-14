@@ -45,25 +45,31 @@ export type Database = {
       }
       access_keys: {
         Row: {
+          activated_at: string | null
           code_name: string
           created_at: string
-          expires_at: string
+          duration_ms: number | null
+          expires_at: string | null
           id: string
           max_devices: number
           token: string
         }
         Insert: {
+          activated_at?: string | null
           code_name: string
           created_at?: string
-          expires_at: string
+          duration_ms?: number | null
+          expires_at?: string | null
           id?: string
           max_devices?: number
           token: string
         }
         Update: {
+          activated_at?: string | null
           code_name?: string
           created_at?: string
-          expires_at?: string
+          duration_ms?: number | null
+          expires_at?: string | null
           id?: string
           max_devices?: number
           token?: string
