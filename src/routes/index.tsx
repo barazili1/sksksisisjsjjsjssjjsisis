@@ -1,3 +1,4 @@
+import { AccessGate } from "@/components/access-gate";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowUpRight, Bell, ChevronLeft, CreditCard, Eye, EyeOff, Fingerprint, Gift, HelpCircle, Lock, Send, Store, X } from "lucide-react";
 import { type SVGProps, useEffect, useState } from "react";
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Index,
+  component: () => (<AccessGate><Index /></AccessGate>),
 });
 
 type IconProps = SVGProps<SVGSVGElement>;

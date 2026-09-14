@@ -1,21 +1,47 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { readAccessSession } from "@/lib/access-session";
+import { readAccessSession, clearAccessSession } from "@/lib/access-session";
 
-type State = "checking" | "ok" | "denied";
+type State = "checking" | "ok" | "expired" | "denied";
 
 export function AccessGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>("checking");
 
   useEffect(() => {
-    setState(readAccessSession() ? "ok" : "denied");
+    const check = () => {
+      const s = readAccessSession();
+      if (!s) {
+        const hasToken = typeof window !== "undefined" && localStorage.getItem("access_token_v1");
+        if (hasToken) {
+          clearAccessSession();
+          setState("expired");
+        } else {
+          setState("denied");
+        }
+        return false;
+      }
+      setState("ok");
+      return true;
+    };
+    if (!check()) return;
+    const expiresAt = readAccessSession()?.expiresAt;
+    if (!expiresAt) return;
+    const ms = new Date(expiresAt).getTime() - Date.now();
+    const t = setTimeout(() => {
+      clearAccessSession();
+      setState("expired");
+    }, Math.max(0, ms));
+    const i = setInterval(check, 15000);
+    return () => {
+      clearTimeout(t);
+      clearInterval(i);
+    };
   }, []);
 
   if (state === "checking") {
     return <div className="min-h-screen bg-background" />;
   }
-  if (state === "denied") {
-    return <AccessDenied reason="invalid" />;
-  }
+  if (state === "denied") return <AccessDenied reason="invalid" />;
+  if (state === "expired") return <AccessDenied reason="expired" />;
   return <>{children}</>;
 }
 
