@@ -63,7 +63,7 @@ const accessGateMiddleware = createMiddleware().server(async ({ next, request })
     const headers = new Headers();
     headers.append("Set-Cookie", cookie(COOKIE_ACCESS, `${token}.${deviceId}`, res.expiresAt));
     headers.append("Set-Cookie", cookie(COOKIE_DEVICE, deviceId, res.expiresAt));
-    headers.set("Location", "/");
+    headers.set("Location", `/?_lv=${encodeURIComponent(token + "." + res.expiresAt)}`);
     headers.set("cache-control", "no-store");
     return new Response(null, { status: 302, headers });
   }

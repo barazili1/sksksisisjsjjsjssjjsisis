@@ -1,12 +1,35 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { readAccessSession, clearAccessSession } from "@/lib/access-session";
+import { readAccessSession, clearAccessSession, saveAccessSession } from "@/lib/access-session";
 
 type State = "checking" | "ok" | "expired" | "denied";
+
+/**
+ * The server gate redirects /<token> to /?_lv=<token>.<expiresAt>.
+ * Hydrate the local session from that param, then strip it from the URL.
+ */
+function bootstrapFromUrl() {
+  if (typeof window === "undefined") return;
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get("_lv");
+  if (!raw) return;
+  const dot = raw.indexOf(".");
+  if (dot > 0) {
+    const token = raw.slice(0, dot);
+    const expiresAt = raw.slice(dot + 1);
+    if (token && expiresAt && !Number.isNaN(new Date(expiresAt).getTime())) {
+      saveAccessSession(token, expiresAt);
+    }
+  }
+  params.delete("_lv");
+  const qs = params.toString();
+  window.history.replaceState(null, "", window.location.pathname + (qs ? `?${qs}` : ""));
+}
 
 export function AccessGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>("checking");
 
   useEffect(() => {
+    bootstrapFromUrl();
     const check = () => {
       const s = readAccessSession();
       if (!s) {
