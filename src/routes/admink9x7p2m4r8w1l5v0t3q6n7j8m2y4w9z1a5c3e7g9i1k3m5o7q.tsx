@@ -224,11 +224,14 @@ function KeyItem({
     [row.expires_at],
   );
   const notActivated = !expiresAt;
-  const expired = !!expiresAt && expiresAt.getTime() < Date.now();
-  const timeLeft = useMemo(
-    () => (expiresAt ? humanTimeLeft(expiresAt) : "لسه مفتحش — العد يبدأ أول ما يُستخدم"),
-    [expiresAt],
-  );
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!expiresAt) return;
+    const i = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(i);
+  }, [expiresAt]);
+  const expired = !!expiresAt && expiresAt.getTime() <= Date.now();
+  const countdown = expiresAt ? countdownText(expiresAt) : "لسه مفتحش";
 
   return (
     <li className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -248,6 +251,15 @@ function KeyItem({
             <code className="flex-1 truncate rounded-lg bg-black/40 px-2 py-1.5 text-[11px] text-white/80" dir="ltr">
               {link}
             </code>
+            <span
+              className={`shrink-0 rounded-lg px-2 py-1 font-mono text-[11px] tabular-nums ${
+                expired ? "bg-red-500/15 text-red-300" : notActivated ? "bg-amber-500/15 text-amber-300" : "bg-emerald-500/15 text-emerald-300"
+              }`}
+              dir="ltr"
+              aria-label="الوقت المتبقي"
+            >
+              {countdown}
+            </span>
             <button
               onClick={onCopy}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20"
@@ -258,7 +270,6 @@ function KeyItem({
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-white/60">
             <span>الأجهزة: {row.device_count}/{row.max_devices}</span>
-            <span>{notActivated ? timeLeft : `ينتهي: ${timeLeft}`}</span>
           </div>
         </div>
         <button
