@@ -284,7 +284,20 @@ function KeyItem({
   );
 }
 
-function humanTimeLeft(d: Date): string {
+function countdownText(d: Date): string {
+  const diff = d.getTime() - Date.now();
+  if (diff <= 0) return "00:00:00";
+  const s = Math.floor(diff / 1000);
+  const days = Math.floor(s / 86400);
+  const hours = Math.floor((s % 86400) / 3600);
+  const mins = Math.floor((s % 3600) / 60);
+  const secs = s % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const hms = `${pad(hours)}:${pad(mins)}:${pad(secs)}`;
+  return days > 0 ? `${days}د ${hms}` : hms;
+}
+
+function _unused_humanTimeLeft(d: Date): string {
   const diff = d.getTime() - Date.now();
   if (diff <= 0) return "انتهى";
   const s = Math.floor(diff / 1000);
