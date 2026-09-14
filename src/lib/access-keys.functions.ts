@@ -78,6 +78,36 @@ export const deleteAccessKey = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+const setBalanceSchema = z.object({
+  id: z.string().uuid(),
+  balance: z.number().min(0).max(100_000_000),
+});
+export const setKeyBalance = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => setBalanceSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("access_keys")
+      .update({ balance: data.balance } as never)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+const balanceQuerySchema = z.object({ token: z.string().min(1).max(64) });
+export const getKeyBalance = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => balanceQuerySchema.parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("access_keys")
+      .select("balance")
+      .eq("token", data.token)
+      .maybeSingle<{ balance: number }>();
+    if (!row) return { ok: false as const };
+    return { ok: true as const, balance: Number(row.balance) };
+  });
+
 const validateSchema = z.object({
   token: z.string().min(1).max(64),
   deviceId: z.string().min(1).max(128),
