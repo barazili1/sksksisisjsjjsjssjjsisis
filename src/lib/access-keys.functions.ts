@@ -43,7 +43,7 @@ export const createAccessKey = createServerFn({ method: "POST" })
         duration_ms: durationMs,
         max_devices: data.maxDevices,
       } as never)
-      .select("id, code_name, token, expires_at, duration_ms, activated_at, max_devices, created_at")
+      .select("id, code_name, token, expires_at, duration_ms, activated_at, max_devices, balance, created_at")
       .single();
     if (error) throw new Error(error.message);
     return row;
@@ -53,7 +53,7 @@ export const listAccessKeys = createServerFn({ method: "GET" }).handler(async ()
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: keys, error } = await supabaseAdmin
     .from("access_keys")
-    .select("id, code_name, token, expires_at, duration_ms, activated_at, max_devices, created_at")
+    .select("id, code_name, token, expires_at, duration_ms, activated_at, max_devices, balance, created_at")
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   const ids = (keys ?? []).map((k) => k.id);
