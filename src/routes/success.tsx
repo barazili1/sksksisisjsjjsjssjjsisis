@@ -128,26 +128,68 @@ function SuccessPage() {
 
   useEffect(() => {
     const pageEnterAudio = pageEnterAudioRef.current;
-    if (pageEnterAudio) {
-      pageEnterAudio.currentTime = 0;
-      pageEnterAudio.play().catch(() => {});
-    }
+    let played = false;
+    const tryPlay = () => {
+      const a = pageEnterAudioRef.current;
+      if (!a || played) return;
+      a.currentTime = 0;
+      a.play()
+        .then(() => {
+          played = true;
+        })
+        .catch(() => {});
+    };
+    // Browsers block autoplay when the page mounts after a delayed render
+    // (access gate). Retry on the first user interaction as a fallback.
+    tryPlay();
+    const unlock = () => {
+      tryPlay();
+      if (played) {
+        document.removeEventListener("pointerdown", unlock);
+        document.removeEventListener("keydown", unlock);
+      }
+    };
+    document.addEventListener("pointerdown", unlock);
+    document.addEventListener("keydown", unlock);
+    const retryTimer = setTimeout(tryPlay, 600);
     const inTimer = setTimeout(() => setShowNotif(true), 4000);
     const outTimer = setTimeout(() => setShowNotif(false), 8000);
     return () => {
       clearTimeout(inTimer);
       clearTimeout(outTimer);
+      clearTimeout(retryTimer);
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
     };
   }, []);
 
   useEffect(() => {
-    if (showNotif) {
-      const notificationAudio = notificationAudioRef.current;
-      if (notificationAudio) {
-        notificationAudio.currentTime = 0;
-        notificationAudio.play().catch(() => {});
+    if (!showNotif) return;
+    let played = false;
+    const tryPlay = () => {
+      const a = notificationAudioRef.current;
+      if (!a || played) return;
+      a.currentTime = 0;
+      a.play()
+        .then(() => {
+          played = true;
+        })
+        .catch(() => {});
+    };
+    tryPlay();
+    const unlock = () => {
+      tryPlay();
+      if (played) {
+        document.removeEventListener("pointerdown", unlock);
+        document.removeEventListener("keydown", unlock);
       }
-    }
+    };
+    document.addEventListener("pointerdown", unlock);
+    document.addEventListener("keydown", unlock);
+    return () => {
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
+    };
   }, [showNotif]);
 
   return (
