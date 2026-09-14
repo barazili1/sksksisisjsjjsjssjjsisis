@@ -46,6 +46,7 @@ export type Database = {
       access_keys: {
         Row: {
           activated_at: string | null
+          balance: number
           code_name: string
           created_at: string
           duration_ms: number | null
@@ -56,6 +57,7 @@ export type Database = {
         }
         Insert: {
           activated_at?: string | null
+          balance?: number
           code_name: string
           created_at?: string
           duration_ms?: number | null
@@ -66,6 +68,7 @@ export type Database = {
         }
         Update: {
           activated_at?: string | null
+          balance?: number
           code_name?: string
           created_at?: string
           duration_ms?: number | null
