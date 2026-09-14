@@ -13,7 +13,6 @@ import { PinSheet } from "@/components/pin-sheet";
 import walletNavIcon from "@/assets/wallet-nav-icon.png.asset.json";
 import loadingLogo from "@/assets/vodafone-loading-logo.png.asset.json";
 import { getTransfers, formatArabicNumber, formatArabicDate, type TransferRecord } from "@/lib/transfer-history";
-import { AccessGate } from "@/components/access-gate";
 
 // No head() here: the home route inherits title/description/og/twitter from
 // __root.tsx, and ships no og:image so serve-time hosting can inject the
@@ -29,7 +28,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: () => (<AccessGate><Index /></AccessGate>),
+  component: Index,
 });
 
 type IconProps = SVGProps<SVGSVGElement>;
