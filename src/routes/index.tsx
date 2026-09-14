@@ -14,6 +14,10 @@ import { PinSheet } from "@/components/pin-sheet";
 import walletNavIcon from "@/assets/wallet-nav-icon.png.asset.json";
 import loadingLogo from "@/assets/vodafone-loading-logo.png.asset.json";
 import { getTransfers, formatArabicNumber, formatArabicDate, type TransferRecord } from "@/lib/transfer-history";
+import { getKeyBalance } from "@/lib/access-keys.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { readAccessSession, clearAccessSession } from "@/lib/access-session";
+import { AccessDenied } from "@/components/access-gate";
 
 // No head() here: the home route inherits title/description/og/twitter from
 // __root.tsx, and ships no og:image so serve-time hosting can inject the
@@ -170,12 +174,32 @@ function Index() {
   const navigate = useNavigate();
 
   const [transfers, setTransfers] = useState<TransferRecord[]>([]);
+  const [initialBalance, setInitialBalance] = useState<number | null>(null);
+  const fetchBalance = useServerFn(getKeyBalance);
   useEffect(() => {
     setTransfers(getTransfers());
-  }, []);
+    const session = readAccessSession();
+    if (!session) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const r = await fetchBalance({ data: { token: session.token } });
+        if (!cancelled && r.ok) setInitialBalance(r.balance);
+      } catch {}
+    };
+    void load();
+    const i = setInterval(load, 20000);
+    return () => { cancelled = true; clearInterval(i); };
+  }, [fetchBalance]);
   const totalTransferred = transfers.reduce((s, t) => s + t.amount, 0);
-  const balance = 70000 - totalTransferred;
+  const base = initialBalance ?? 70000;
+  const balance = Math.max(0, base - totalTransferred);
   const expenses = 7314.7 + totalTransferred;
+
+  if (initialBalance !== null && balance <= 0) {
+    if (typeof window !== "undefined") clearAccessSession();
+    return <AccessDenied reason="no_balance" />;
+  }
 
   const goToTransfer = () => {
     setTransferLoading(true);

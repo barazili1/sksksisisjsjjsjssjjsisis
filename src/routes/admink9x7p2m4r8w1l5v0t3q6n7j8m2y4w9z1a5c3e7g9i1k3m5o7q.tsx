@@ -7,6 +7,7 @@ import {
   createAccessKey,
   deleteAccessKey,
   listAccessKeys,
+  setKeyBalance,
 } from "@/lib/access-keys.functions";
 import { Button } from "@/components/ui/button";
 
@@ -188,6 +189,7 @@ function AdminPage() {
                   copied={copiedId === row.id}
                   onCopy={() => copyLink(row)}
                   onDelete={() => onDelete(row.id)}
+                  onRefresh={refresh}
                 />
               ))}
             </ul>
@@ -212,12 +214,30 @@ function KeyItem({
   copied,
   onCopy,
   onDelete,
+  onRefresh,
 }: {
   row: KeyRow;
   copied: boolean;
   onCopy: () => void;
   onDelete: () => void;
+  onRefresh: () => Promise<void> | void;
 }) {
+  const saveBalance = useServerFn(setKeyBalance);
+  const [balanceInput, setBalanceInput] = useState<string>(String(row.balance ?? 0));
+  const [savingBalance, setSavingBalance] = useState(false);
+  useEffect(() => { setBalanceInput(String(row.balance ?? 0)); }, [row.balance]);
+  const balanceEmpty = Number(row.balance ?? 0) <= 0;
+  async function onSaveBalance() {
+    const n = Number(balanceInput);
+    if (!Number.isFinite(n) || n < 0) return;
+    setSavingBalance(true);
+    try {
+      await saveBalance({ data: { id: row.id, balance: n } });
+      await onRefresh();
+    } finally {
+      setSavingBalance(false);
+    }
+  }
   const link = `${SITE_BASE}/${row.token}`;
   const expiresAt = useMemo(
     () => (row.expires_at ? new Date(row.expires_at) : null),
@@ -270,6 +290,29 @@ function KeyItem({
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-white/60">
             <span>الأجهزة: {row.device_count}/{row.max_devices}</span>
+            <span className={balanceEmpty ? "text-red-300" : "text-emerald-300"}>
+              الرصيد: {Number(row.balance ?? 0).toLocaleString("en-US")} ج.م
+              {balanceEmpty ? " — موقوف" : ""}
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={balanceInput}
+              onChange={(e) => setBalanceInput(e.target.value)}
+              className="w-32 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5 text-xs text-white outline-none focus:border-red-400/60"
+              dir="ltr"
+              aria-label="الرصيد"
+            />
+            <button
+              onClick={onSaveBalance}
+              disabled={savingBalance}
+              className="rounded-lg bg-emerald-500/20 px-3 py-1.5 text-xs font-medium text-emerald-200 hover:bg-emerald-500/30 disabled:opacity-50"
+            >
+              {savingBalance ? "…" : "تحديث الرصيد"}
+            </button>
           </div>
         </div>
         <button
