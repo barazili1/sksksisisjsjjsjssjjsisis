@@ -164,13 +164,32 @@ function SuccessPage() {
   }, []);
 
   useEffect(() => {
-    if (showNotif) {
-      const notificationAudio = notificationAudioRef.current;
-      if (notificationAudio) {
-        notificationAudio.currentTime = 0;
-        notificationAudio.play().catch(() => {});
+    if (!showNotif) return;
+    let played = false;
+    const tryPlay = () => {
+      const a = notificationAudioRef.current;
+      if (!a || played) return;
+      a.currentTime = 0;
+      a.play()
+        .then(() => {
+          played = true;
+        })
+        .catch(() => {});
+    };
+    tryPlay();
+    const unlock = () => {
+      tryPlay();
+      if (played) {
+        document.removeEventListener("pointerdown", unlock);
+        document.removeEventListener("keydown", unlock);
       }
-    }
+    };
+    document.addEventListener("pointerdown", unlock);
+    document.addEventListener("keydown", unlock);
+    return () => {
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
+    };
   }, [showNotif]);
 
   return (
