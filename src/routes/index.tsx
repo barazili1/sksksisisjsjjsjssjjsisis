@@ -198,7 +198,7 @@ function Index() {
 
   if (initialBalance !== null && balance <= 0) {
     if (typeof window !== "undefined") clearAccessSession();
-    return <AccessDenied reason="expired" />;
+    return <AccessDenied reason="no_balance" />;
   }
 
   const goToTransfer = () => {
