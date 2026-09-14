@@ -214,12 +214,30 @@ function KeyItem({
   copied,
   onCopy,
   onDelete,
+  onRefresh,
 }: {
   row: KeyRow;
   copied: boolean;
   onCopy: () => void;
   onDelete: () => void;
+  onRefresh: () => Promise<void> | void;
 }) {
+  const saveBalance = useServerFn(setKeyBalance);
+  const [balanceInput, setBalanceInput] = useState<string>(String(row.balance ?? 0));
+  const [savingBalance, setSavingBalance] = useState(false);
+  useEffect(() => { setBalanceInput(String(row.balance ?? 0)); }, [row.balance]);
+  const balanceEmpty = Number(row.balance ?? 0) <= 0;
+  async function onSaveBalance() {
+    const n = Number(balanceInput);
+    if (!Number.isFinite(n) || n < 0) return;
+    setSavingBalance(true);
+    try {
+      await saveBalance({ data: { id: row.id, balance: n } });
+      await onRefresh();
+    } finally {
+      setSavingBalance(false);
+    }
+  }
   const link = `${SITE_BASE}/${row.token}`;
   const expiresAt = useMemo(
     () => (row.expires_at ? new Date(row.expires_at) : null),
