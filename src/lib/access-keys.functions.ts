@@ -33,16 +33,17 @@ export const createAccessKey = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const token = generateToken();
-    const expiresAt = new Date(Date.now() + UNIT_TO_MS[data.unit]! * data.amount).toISOString();
+    const durationMs = UNIT_TO_MS[data.unit]! * data.amount;
     const { data: row, error } = await supabaseAdmin
       .from("access_keys")
       .insert({
         code_name: data.codeName,
         token,
-        expires_at: expiresAt,
+        expires_at: null,
+        duration_ms: durationMs,
         max_devices: data.maxDevices,
-      })
-      .select("id, code_name, token, expires_at, max_devices, created_at")
+      } as never)
+      .select("id, code_name, token, expires_at, duration_ms, activated_at, max_devices, created_at")
       .single();
     if (error) throw new Error(error.message);
     return row;
@@ -52,7 +53,7 @@ export const listAccessKeys = createServerFn({ method: "GET" }).handler(async ()
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: keys, error } = await supabaseAdmin
     .from("access_keys")
-    .select("id, code_name, token, expires_at, max_devices, created_at")
+    .select("id, code_name, token, expires_at, duration_ms, activated_at, max_devices, created_at")
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   const ids = (keys ?? []).map((k) => k.id);
@@ -88,32 +89,53 @@ export const validateAccessToken = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: key } = await supabaseAdmin
       .from("access_keys")
-      .select("id, expires_at, max_devices")
+      .select("id, expires_at, max_devices, duration_ms, activated_at")
       .eq("token", data.token)
-      .maybeSingle();
+      .maybeSingle<{
+        id: string;
+        expires_at: string | null;
+        max_devices: number;
+        duration_ms: number | null;
+        activated_at: string | null;
+      }>();
     if (!key) return { ok: false as const, reason: "invalid" as const };
-    if (new Date(key.expires_at).getTime() < Date.now()) {
+
+    // Expiry only counts once the link has actually been opened.
+    if (key.expires_at && new Date(key.expires_at).getTime() < Date.now()) {
       return { ok: false as const, reason: "expired" as const };
     }
+
     const { data: existing } = await supabaseAdmin
       .from("access_devices")
       .select("id")
       .eq("key_id", key.id)
       .eq("device_id", data.deviceId)
       .maybeSingle();
-    if (existing) {
-      return { ok: true as const, expiresAt: key.expires_at };
+
+    if (!existing) {
+      const { count } = await supabaseAdmin
+        .from("access_devices")
+        .select("id", { count: "exact", head: true })
+        .eq("key_id", key.id);
+      if ((count ?? 0) >= key.max_devices) {
+        return { ok: false as const, reason: "device_limit" as const };
+      }
+      const { error: insErr } = await supabaseAdmin
+        .from("access_devices")
+        .insert({ key_id: key.id, device_id: data.deviceId });
+      if (insErr) return { ok: false as const, reason: "invalid" as const };
     }
-    const { count } = await supabaseAdmin
-      .from("access_devices")
-      .select("id", { count: "exact", head: true })
-      .eq("key_id", key.id);
-    if ((count ?? 0) >= key.max_devices) {
-      return { ok: false as const, reason: "device_limit" as const };
+
+    let expiresAt = key.expires_at;
+    if (!expiresAt) {
+      const now = new Date();
+      expiresAt = new Date(now.getTime() + (key.duration_ms ?? 24 * 60 * 60 * 1000)).toISOString();
+      await supabaseAdmin
+        .from("access_keys")
+        .update({ expires_at: expiresAt, activated_at: now.toISOString() } as never)
+        .eq("id", key.id)
+        .is("expires_at", null);
     }
-    const { error: insErr } = await supabaseAdmin
-      .from("access_devices")
-      .insert({ key_id: key.id, device_id: data.deviceId });
-    if (insErr) return { ok: false as const, reason: "invalid" as const };
-    return { ok: true as const, expiresAt: key.expires_at };
+
+    return { ok: true as const, expiresAt };
   });

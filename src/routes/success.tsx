@@ -8,7 +8,6 @@ import vodafoneCashCombo from "@/assets/vodafone-cash-combo.png.asset.json";
 import pageEnterSound from "@/assets/success-page-enter.mp3.asset.json";
 import notificationSound from "@/assets/iphone-notification.m4a.asset.json";
 import { addTransfer } from "@/lib/transfer-history";
-import { AccessGate } from "@/components/access-gate";
 
 export const Route = createFileRoute("/success")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -26,7 +25,7 @@ export const Route = createFileRoute("/success")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: () => (<AccessGate><SuccessPage /></AccessGate>),
+  component: SuccessPage,
 });
 
 const arabicMonths = [
