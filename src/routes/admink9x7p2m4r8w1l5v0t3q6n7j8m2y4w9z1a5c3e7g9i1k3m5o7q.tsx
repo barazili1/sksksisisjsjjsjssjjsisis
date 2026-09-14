@@ -189,6 +189,7 @@ function AdminPage() {
                   copied={copiedId === row.id}
                   onCopy={() => copyLink(row)}
                   onDelete={() => onDelete(row.id)}
+                  onRefresh={refresh}
                 />
               ))}
             </ul>
