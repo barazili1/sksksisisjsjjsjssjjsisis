@@ -219,9 +219,16 @@ function KeyItem({
   onDelete: () => void;
 }) {
   const link = `${SITE_BASE}/${row.token}`;
-  const expiresAt = useMemo(() => new Date(row.expires_at), [row.expires_at]);
-  const expired = expiresAt.getTime() < Date.now();
-  const timeLeft = useMemo(() => humanTimeLeft(expiresAt), [expiresAt]);
+  const expiresAt = useMemo(
+    () => (row.expires_at ? new Date(row.expires_at) : null),
+    [row.expires_at],
+  );
+  const notActivated = !expiresAt;
+  const expired = !!expiresAt && expiresAt.getTime() < Date.now();
+  const timeLeft = useMemo(
+    () => (expiresAt ? humanTimeLeft(expiresAt) : "لسه مفتحش — العد يبدأ أول ما يُستخدم"),
+    [expiresAt],
+  );
 
   return (
     <li className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -229,7 +236,9 @@ function KeyItem({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate text-sm font-semibold text-white">{row.code_name}</span>
-            {expired ? (
+            {notActivated ? (
+              <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300">جديد</span>
+            ) : expired ? (
               <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-medium text-red-300">منتهي</span>
             ) : (
               <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">فعّال</span>
@@ -249,7 +258,7 @@ function KeyItem({
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-white/60">
             <span>الأجهزة: {row.device_count}/{row.max_devices}</span>
-            <span>ينتهي: {timeLeft}</span>
+            <span>{notActivated ? timeLeft : `ينتهي: ${timeLeft}`}</span>
           </div>
         </div>
         <button

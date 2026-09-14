@@ -226,3 +226,8 @@
 #lovable-badge {
   display: none !important;
 }
+
+/* Hide the Lovable badge globally */
+#lovable-badge {
+  display: none !important;
+}
