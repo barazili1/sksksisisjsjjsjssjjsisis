@@ -7,6 +7,7 @@ import {
   createAccessKey,
   deleteAccessKey,
   listAccessKeys,
+  setKeyBalance,
 } from "@/lib/access-keys.functions";
 import { Button } from "@/components/ui/button";
 
