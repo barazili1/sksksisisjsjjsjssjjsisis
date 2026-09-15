@@ -1,4 +1,4 @@
-import { AccessGate } from "@/components/access-gate";
+
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight, Star, X } from "lucide-react";
 import { useState, type SVGProps } from "react";
