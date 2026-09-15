@@ -1,4 +1,3 @@
-import { AccessGate } from "@/components/access-gate";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowUpRight, Bell, ChevronLeft, CreditCard, Eye, EyeOff, Fingerprint, Gift, HelpCircle, Lock, Send, Store, X } from "lucide-react";
 import { type SVGProps, useEffect, useState } from "react";
@@ -14,14 +13,9 @@ import { PinSheet } from "@/components/pin-sheet";
 import walletNavIcon from "@/assets/wallet-nav-icon.png.asset.json";
 import loadingLogo from "@/assets/vodafone-loading-logo.png.asset.json";
 import { getTransfers, formatArabicNumber, formatArabicDate, type TransferRecord } from "@/lib/transfer-history";
-import { getKeyBalance } from "@/lib/access-keys.functions";
+import { getMyBalance } from "@/lib/access-keys.functions";
 import { useServerFn } from "@tanstack/react-start";
-import { readAccessSession, clearAccessSession } from "@/lib/access-session";
-import { AccessDenied } from "@/components/access-gate";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -33,7 +27,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: () => (<AccessGate><Index /></AccessGate>),
+  component: Index,
 });
 
 type IconProps = SVGProps<SVGSVGElement>;
@@ -175,15 +169,13 @@ function Index() {
 
   const [transfers, setTransfers] = useState<TransferRecord[]>([]);
   const [initialBalance, setInitialBalance] = useState<number | null>(null);
-  const fetchBalance = useServerFn(getKeyBalance);
+  const fetchBalance = useServerFn(getMyBalance);
   useEffect(() => {
     setTransfers(getTransfers());
-    const session = readAccessSession();
-    if (!session) return;
     let cancelled = false;
     const load = async () => {
       try {
-        const r = await fetchBalance({ data: { token: session.token } });
+        const r = await fetchBalance();
         if (!cancelled && r.ok) setInitialBalance(r.balance);
       } catch {}
     };
@@ -197,8 +189,8 @@ function Index() {
   const expenses = 7314.7 + totalTransferred;
 
   if (initialBalance !== null && balance <= 0) {
-    if (typeof window !== "undefined") clearAccessSession();
-    return <AccessDenied reason="no_balance" />;
+    if (typeof window !== "undefined") window.location.reload();
+    return <div className="min-h-screen bg-background" />;
   }
 
   const goToTransfer = () => {
