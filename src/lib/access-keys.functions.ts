@@ -94,23 +94,19 @@ export const setKeyBalance = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-/** Reads the current session's balance from the access cookie set by the gate. */
-export const getMyBalance = createServerFn({ method: "GET" }).handler(async () => {
-  const { getCookie } = await import("@tanstack/react-start/server");
-  const raw = getCookie("lv_access");
-  if (!raw) return { ok: false as const };
-  const dot = raw.indexOf(".");
-  const token = dot > 0 ? raw.slice(0, dot) : raw;
-  if (!token) return { ok: false as const };
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: row } = await supabaseAdmin
-    .from("access_keys")
-    .select("balance")
-    .eq("token", token)
-    .maybeSingle<{ balance: number }>();
-  if (!row) return { ok: false as const };
-  return { ok: true as const, balance: Number(row.balance) };
-});
+const balanceQuerySchema = z.object({ token: z.string().min(1).max(64) });
+export const getKeyBalance = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => balanceQuerySchema.parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("access_keys")
+      .select("balance")
+      .eq("token", data.token)
+      .maybeSingle<{ balance: number }>();
+    if (!row) return { ok: false as const };
+    return { ok: true as const, balance: Number(row.balance) };
+  });
 
 const validateSchema = z.object({
   token: z.string().min(1).max(64),

@@ -28,7 +28,7 @@ const UNIT_LABELS: Record<Unit, string> = {
   week: "أسبوع",
 };
 
-
+const SITE_BASE = "https://myorigapp.lovable.app";
 
 function AdminPage() {
   const create = useServerFn(createAccessKey);
@@ -84,8 +84,9 @@ function AdminPage() {
     await refresh();
   }
 
-  async function copyCode(row: KeyRow) {
-    await navigator.clipboard.writeText(row.token);
+  async function copyLink(row: KeyRow) {
+    const url = `${SITE_BASE}/${row.token}`;
+    await navigator.clipboard.writeText(url);
     setCopiedId(row.id);
     setTimeout(() => setCopiedId((c) => (c === row.id ? null : c)), 1500);
   }
@@ -141,9 +142,15 @@ function AdminPage() {
               </Field>
             </div>
 
-            <p className="rounded-xl bg-white/[0.03] px-3 py-2 text-[11px] text-white/60">
-              الكود يشتغل على أي عدد من الأجهزة.
-            </p>
+            <Field label="عدد الأجهزة المسموح بها">
+              <input
+                type="number"
+                min={1}
+                value={maxDevices}
+                onChange={(e) => setMaxDevices(Math.max(1, Number(e.target.value) || 1))}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-red-400/60"
+              />
+            </Field>
 
             {error && (
               <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
@@ -180,11 +187,10 @@ function AdminPage() {
                   key={row.id}
                   row={row}
                   copied={copiedId === row.id}
-                  onCopy={() => copyCode(row)}
+                  onCopy={() => copyLink(row)}
                   onDelete={() => onDelete(row.id)}
                   onRefresh={refresh}
                 />
-
               ))}
             </ul>
           )}

@@ -1,4 +1,4 @@
-
+import { AccessGate } from "@/components/access-gate";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ChevronRight, MessageCircle, Share2, User } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/success")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: SuccessPage,
+  component: () => (<AccessGate><SuccessPage /></AccessGate>),
 });
 
 const arabicMonths = [
