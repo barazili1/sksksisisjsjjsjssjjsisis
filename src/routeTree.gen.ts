@@ -10,20 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TokenRouteImport } from './routes/$token'
 import { Route as Admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7qRouteImport } from './routes/admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7q'
 import { Route as ConfirmRouteImport } from './routes/confirm'
 import { Route as SuccessRouteImport } from './routes/success'
 import { Route as TransferRouteImport } from './routes/transfer'
+import { Route as ApiPublicRedeemRouteImport } from './routes/api/public/redeem'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TokenRoute = TokenRouteImport.update({
-  id: '/$token',
-  path: '/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7qRoute =
@@ -47,66 +42,71 @@ const TransferRoute = TransferRouteImport.update({
   path: '/transfer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRedeemRoute = ApiPublicRedeemRouteImport.update({
+  id: '/api/public/redeem',
+  path: '/api/public/redeem',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$token': typeof TokenRoute
   '/admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7q': typeof Admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7qRoute
   '/confirm': typeof ConfirmRoute
   '/success': typeof SuccessRoute
   '/transfer': typeof TransferRoute
+  '/api/public/redeem': typeof ApiPublicRedeemRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$token': typeof TokenRoute
   '/admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7q': typeof Admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7qRoute
   '/confirm': typeof ConfirmRoute
   '/success': typeof SuccessRoute
   '/transfer': typeof TransferRoute
+  '/api/public/redeem': typeof ApiPublicRedeemRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$token': typeof TokenRoute
   '/admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7q': typeof Admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7qRoute
   '/confirm': typeof ConfirmRoute
   '/success': typeof SuccessRoute
   '/transfer': typeof TransferRoute
+  '/api/public/redeem': typeof ApiPublicRedeemRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/$token'
     | '/admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7q'
     | '/confirm'
     | '/success'
     | '/transfer'
+    | '/api/public/redeem'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/$token'
     | '/admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7q'
     | '/confirm'
     | '/success'
     | '/transfer'
+    | '/api/public/redeem'
   id:
     | '__root__'
     | '/'
-    | '/$token'
     | '/admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7q'
     | '/confirm'
     | '/success'
     | '/transfer'
+    | '/api/public/redeem'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  TokenRoute: typeof TokenRoute
   Admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7qRoute: typeof Admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7qRoute
   ConfirmRoute: typeof ConfirmRoute
   SuccessRoute: typeof SuccessRoute
   TransferRoute: typeof TransferRoute
+  ApiPublicRedeemRoute: typeof ApiPublicRedeemRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,13 +116,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$token': {
-      id: '/$token'
-      path: '/$token'
-      fullPath: '/$token'
-      preLoaderRoute: typeof TokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7q': {
@@ -153,17 +146,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransferRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/redeem': {
+      id: '/api/public/redeem'
+      path: '/api/public/redeem'
+      fullPath: '/api/public/redeem'
+      preLoaderRoute: typeof ApiPublicRedeemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  TokenRoute: TokenRoute,
   Admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7qRoute:
     Admink9x7p2m4r8w1l5v0t3q6n7j8m2y4w9z1a5c3e7g9i1k3m5o7qRoute,
   ConfirmRoute: ConfirmRoute,
   SuccessRoute: SuccessRoute,
   TransferRoute: TransferRoute,
+  ApiPublicRedeemRoute: ApiPublicRedeemRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
