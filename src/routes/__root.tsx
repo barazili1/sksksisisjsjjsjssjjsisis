@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import loadingLogo from "@/assets/vodafone-loading-logo.png.asset.json";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { installAntiInspect } from "../lib/anti-inspect";
 
 function NotFoundComponent() {
   return (
@@ -122,6 +123,10 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    installAntiInspect();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
